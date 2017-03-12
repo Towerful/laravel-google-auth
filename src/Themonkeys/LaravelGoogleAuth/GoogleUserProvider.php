@@ -13,7 +13,9 @@ class GoogleUserProvider implements UserProviderInterface {
     function __construct()
     {
         $this->client = App::make('google-client');
-        $this->oauth2 = new \Google_Service_Oauth2($this->client);
+        $this->oauth2 = new \Google_Oauth2Service($this->client);
+        $this->model = \Config::get('auth.model');
+        $this->match = \Config::get('auth.match');
 
         if (Session::has($this->getTokenName())) {
             $this->client->setAccessToken(Session::get($this->getTokenName()));
@@ -48,7 +50,17 @@ class GoogleUserProvider implements UserProviderInterface {
         if ($this->client->getAccessToken()) {
 
             $userinfo = $this->oauth2->userinfo->get();
-            return new GenericUser(get_object_vars($userinfo));
+            $userinfo['google_id'] = $userinfo['id'];
+            unset($userinfo['id']);
+            $user = $this->createModel()->newQuery()->where($this->match, "=", $userinfo[$this->match])->first();
+            if($user == null){
+                //save the user
+                $user = $this->createModel();
+            }
+            //at the very least, it will update timestamp to represent last login
+            $user->fill($userinfo);
+            $user->save();
+            return $user;
         }
     }
 
@@ -97,6 +109,12 @@ class GoogleUserProvider implements UserProviderInterface {
             return Redirect::to(filter_var($url, FILTER_SANITIZE_URL));
         }
         return null;
+    }
+    public function createModel()
+    {
+        $class = '\\'.ltrim($this->model, '\\');
+
+        return new $class;
     }
 
 }
