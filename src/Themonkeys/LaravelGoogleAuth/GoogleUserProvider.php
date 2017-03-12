@@ -13,7 +13,7 @@ class GoogleUserProvider implements UserProviderInterface {
     function __construct()
     {
         $this->client = App::make('google-client');
-        $this->oauth2 = new \Google_Oauth2Service($this->client);
+        $this->oauth2 = new \Google_Service_Oauth2($this->client);
         $this->model = \Config::get('auth.model');
         $this->match = \Config::get('auth.match');
 
@@ -49,7 +49,7 @@ class GoogleUserProvider implements UserProviderInterface {
     {
         if ($this->client->getAccessToken()) {
 
-            $userinfo = $this->oauth2->userinfo->get();
+            $userinfo = get_object_vars($this->oauth2->userinfo->get());
             $userinfo['google_id'] = $userinfo['id'];
             unset($userinfo['id']);
             $user = $this->createModel()->newQuery()->where($this->match, "=", $userinfo[$this->match])->first();
