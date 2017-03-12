@@ -48,6 +48,7 @@ class GoogleUserProvider implements UserProviderInterface {
         if ($this->client->getAccessToken()) {
 
             $userinfo = $this->oauth2->userinfo->get();
+            dd($userinfo);
             return new GenericUser(get_object_vars($userinfo));
         }
     }
