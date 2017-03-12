@@ -13,7 +13,7 @@ class GoogleUserProvider implements UserProviderInterface {
     function __construct()
     {
         $this->client = App::make('google-client');
-        $this->oauth2 = new \Google_Oauth2Service($this->client);
+        $this->oauth2 = new \Google_Service_Oauth2($this->client);
 
         if (Session::has($this->getTokenName())) {
             $this->client->setAccessToken(Session::get($this->getTokenName()));
